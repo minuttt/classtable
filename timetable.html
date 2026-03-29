@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25S13 Timetable</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06080f;
+    --bg2: #0c1020;
+    --bg3: #111827;
+    --surface: #161d2e;
+    --surface2: #1e2840;
+    --border: rgba(120,160,255,0.12);
+    --border2: rgba(120,160,255,0.22);
+    --text: #e8eeff;
+    --text2: #8a9bbf;
+    --text3: #556070;
+    --accent: #4f7cff;
+    --accent2: #7c5cfc;
+    --glow: rgba(79,124,255,0.15);
+
+    --c-physics: #3b82f6;
+    --c-physics-bg: rgba(59,130,246,0.15);
+    --c-math: #8b5cf6;
+    --c-math-bg: rgba(139,92,246,0.15);
+    --c-computing: #06b6d4;
+    --c-computing-bg: rgba(6,182,212,0.15);
+    --c-gp: #f59e0b;
+    --c-gp-bg: rgba(245,158,11,0.15);
+    --c-pe: #10b981;
+    --c-pe-bg: rgba(16,185,129,0.15);
+    --c-assembly: #ec4899;
+    --c-assembly-bg: rgba(236,72,153,0.15);
+    --c-break: #6b7280;
+    --c-break-bg: rgba(107,114,128,0.10);
+    --c-cca: #f97316;
+    --c-cca-bg: rgba(249,115,22,0.15);
+    --c-sdt: #14b8a6;
+    --c-sdt-bg: rgba(20,184,166,0.15);
+    --c-c3: #a78bfa;
+    --c-c3-bg: rgba(167,139,250,0.15);
+    --c-whitespace: #64748b;
+    --c-whitespace-bg: rgba(100,116,139,0.12);
+    --c-h1: #fbbf24;
+    --c-h1-bg: rgba(251,191,36,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ANIMATED BACKGROUND */
+  .bg-scene {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    overflow: hidden;
+  }
+  .bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: orbFloat 12s ease-in-out infinite;
+  }
+  .bg-orb:nth-child(1) { width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,124,255,0.18) 0%, transparent 70%); top: -200px; left: -100px; animation-delay: 0s; }
+  .bg-orb:nth-child(2) { width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,92,252,0.14) 0%, transparent 70%); top: 20%; right: -150px; animation-delay: -4s; }
+  .bg-orb:nth-child(3) { width: 400px; height: 400px; background: radial-gradient(circle, rgba(6,182,212,0.10) 0%, transparent 70%); bottom: 10%; left: 30%; animation-delay: -8s; }
+  .grid-lines {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(79,124,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(79,124,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.05); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+
+  /* MAIN LAYOUT */
+  .app { position: relative; z-index: 1; min-height: 100vh; }
+
+  /* LOGIN / ONBOARDING */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 24px;
+    padding: 3rem;
+    max-width: 480px;
+    width: 100%;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 80px rgba(79,124,255,0.1);
+  }
+  .login-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4f7cff, #7c5cfc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+  .login-subtitle { color: var(--text2); font-size: 0.95rem; margin-bottom: 2.5rem; }
+  .step-indicator {
+    display: flex; gap: 8px; margin-bottom: 2rem;
+  }
+  .step-dot {
+    height: 4px; border-radius: 2px;
+    background: var(--surface2); flex: 1;
+    transition: background 0.3s;
+  }
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--accent2); }
+
+  .form-group { margin-bottom: 1.25rem; }
+  .form-label { font-size: 0.8rem; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: block; }
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79,124,255,0.15);
+  }
+  .form-select option { background: #1e2840; }
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 12px;
+    padding: 0.85rem 1.5rem;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 0.5rem;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .google-btn {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 0.85rem 1.5rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    transition: background 0.2s, border-color 0.2s;
+    margin-bottom: 1.5rem;
+  }
+  .google-btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .google-icon { width: 20px; height: 20px; flex-shrink: 0; }
+  .divider { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .divider-text { color: var(--text3); font-size: 0.8rem; }
+  .step-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .step-desc { color: var(--text2); font-size: 0.88rem; margin-bottom: 1.5rem; line-height: 1.6; }
+  .welcome-msg {
+    background: linear-gradient(135deg, rgba(79,124,255,0.1), rgba(124,92,252,0.1));
+    border: 1px solid rgba(79,124,255,0.2);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .welcome-msg strong { color: var(--text); }
+
+  /* MAIN APP */
+  #main-app { display: none; }
+
+  /* NAVBAR */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(6,8,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4f7cff, #7c5cfc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .nav-greeting { color: var(--text2); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+  .nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 600; color: white;
+  }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-tab.active { background: var(--surface2); color: var(--text); }
+  .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
+
+  /* PAGE CONTENT */
+  .page { display: none; padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* TODAY MODE */
+  .today-header {
+    margin-bottom: 2rem;
+  }
+  .today-date {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .today-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .today-title span {
+    background: linear-gradient(135deg, #4f7cff, #7c5cfc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* STATUS CARD */
+  .status-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .status-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .status-label { font-size: 0.75rem; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+  .status-main { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .status-sub { color: var(--text2); font-size: 0.9rem; }
+  .status-time-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(79,124,255,0.15);
+    border: 1px solid rgba(79,124,255,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    color: #7aa4ff;
+    margin-top: 0.75rem;
+  }
+  .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4f7cff;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .time-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--text2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  /* LESSON CARDS */
+  .lessons-list { display: flex; flex-direction: column; gap: 10px; }
+  .lesson-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .lesson-card.current {
+    border-color: transparent;
+    background: var(--surface2);
+    transform: scale(1.01);
+    box-shadow: 0 0 30px rgba(79,124,255,0.15);
+  }
+  .lesson-card.current::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 16px;
+    border: 1.5px solid transparent;
+    background: linear-gradient(135deg, rgba(79,124,255,0.5), rgba(124,92,252,0.5)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .lesson-card.past { opacity: 0.4; }
+  .lesson-card.break-card { border-style: dashed; }
+
+  .lesson-color-bar {
+    width: 4px; height: 40px; border-radius: 2px; flex-shrink: 0;
+  }
+  .lesson-time-col { text-align: right; min-width: 80px; }
+  .lesson-time-start { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text); }
+  .lesson-time-end { font-size: 0.75rem; color: var(--text3); }
+  .lesson-info { flex: 1; }
+  .lesson-subject { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
+  .lesson-location { font-size: 0.78rem; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .lesson-badge {
+    font-size: 0.65rem; font-weight: 600; padding: 2px 8px;
+    border-radius: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .badge-now { background: rgba(79,124,255,0.2); color: #7aa4ff; border: 1px solid rgba(79,124,255,0.3); }
+  .badge-next { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .badge-done { background: rgba(107,114,128,0.15); color: #6b7280; }
+  .badge-soon { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+
+  /* WEEKLY VIEW */
+  .week-controls {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1; min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .search-wrapper { position: relative; flex: 1; min-width: 200px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; pointer-events: none; }
+  .search-box:focus { border-color: var(--accent); }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-pill {
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--text2); font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .filter-pill.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .filter-pill:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+
+  .days-tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; overflow-x: auto; }
+  .day-tab {
+    flex-shrink: 0; padding: 8px 18px; border-radius: 10px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text2); font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .day-tab.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+  .day-tab.today-tab { border-color: rgba(79,124,255,0.4); color: #7aa4ff; }
+  .day-tab.today-tab.active { background: rgba(79,124,255,0.15); }
+  .day-tab:hover:not(.active) { background: rgba(255,255,255,0.04); }
+
+  .week-schedule { display: flex; flex-direction: column; gap: 8px; }
+
+  /* LEGEND */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.75rem; color: var(--text2);
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* PERSONALISED SECTION */
+  .persona-banner {
+    background: linear-gradient(135deg, rgba(79,124,255,0.1), rgba(124,92,252,0.08));
+    border: 1px solid rgba(79,124,255,0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex; align-items: flex-start; gap: 1.2rem;
+  }
+  .persona-avatar-lg {
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; color: white;
+  }
+  .persona-name { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+  .persona-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .persona-tag {
+    font-size: 0.72rem; padding: 3px 10px; border-radius: 10px;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .persona-tag.fav { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); color: #34d399; }
+  .persona-tag.weak { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.25); color: #f87171; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.2rem 1rem; text-align: center;
+  }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 0.78rem; color: var(--text3); }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    .navbar { padding: 0 1rem; }
+    .nav-tabs .nav-tab { padding: 5px 10px; font-size: 0.78rem; }
+    .page { padding: 1.5rem 1rem; }
+    .login-card { padding: 2rem 1.5rem; }
+    .time-display { font-size: 2.5rem; }
+    .today-title { font-size: 1.7rem; }
+    .lesson-time-col { min-width: 65px; }
+  }
+
+  /* NO LESSONS */
+  .empty-state {
+    text-align: center; padding: 3rem 2rem;
+    color: var(--text3); font-size: 0.9rem;
+  }
+  .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { background: var(--bg3); border-radius: 4px; height: 4px; margin-top: 8px; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 1s linear; }
+
+  /* HBL badge */
+  .hbl-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 8px; padding: 4px 10px; font-size: 0.78rem; color: #fbbf24;
+    margin-bottom: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-scene">
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+  <div class="grid-lines"></div>
+</div>
+
+<div class="app">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">classtable.</div>
+    <div class="login-subtitle">Your smart school schedule, supercharged.</div>
+
+    <!-- Step 1: Google Sign-in -->
+    <div id="step-1">
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-dot" id="dot3"></div>
+      </div>
+      <div class="step-title">Welcome</div>
+      <div class="step-desc">Sign in with your school Google account to get started.</div>
+      <button class="google-btn" onclick="mockGoogleSignIn()">
+        <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">or use demo</div>
+        <div class="divider-line"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="demo-email" placeholder="your@email.com" value="student@school.edu.sg">
+      </div>
+      <button class="btn-primary" onclick="nextStep(2)">Continue →</button>
+    </div>
+
+    <!-- Step 2: Personal info -->
+    <div id="step-2" style="display:none">
+      <div class="step-indicator">
+        <div class="step-dot done" id="dot1b"></div>
+        <div class="step-dot active" id="dot2b"></div>
+        <div class="step-dot" id="dot3b"></div>
+      </div>
+      <div class="step-title">Tell us about you</div>
+      <div class="step-desc">Help us personalise your experience for class 25S13.</div>
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input class="form-input" type="text" id="input-name" placeholder="e.g. Alex Tan">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Class</label>
+        <input class="form-input" type="text" value="25S13" readonly style="opacity:0.6; cursor:not-allowed;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Favourite Subject</label>
+        <select class="form-select" id="input-fav">
+          <option value="">Select subject…</option>
+          <option>H2 Physics</option>
+          <option>H2 Math</option>
+          <option>H2 Computing</option>
+          <option>H1 General Paper</option>
+          <option>PE</option>
+          <option>CCA</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Weakest Subject</label>
+        <select class="form-select" id="input-weak">
+          <option value="">Select subject…</option>
+          <option>H2 Physics</option>
+          <option>H2 Math</option>
+          <option>H2 Computing</option>
+          <option>H1 General Paper</option>
+          <option>PE</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="nextStep(3)">Next →</button>
+    </div>
+
+    <!-- Step 3: Preferences -->
+    <div id="step-3" style="display:none">
+      <div class="step-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+      </div>
+      <div class="step-title">Almost there!</div>
+      <div id="welcome-preview" class="welcome-msg"></div>
+      <div class="step-desc">Your timetable is ready. Here's what you'll get:</div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:1.5rem;">
+        <div style="display:flex; align-items:center; gap:10px; font-size:0.88rem; color:var(--text2);">
+          <span style="font-size:1rem;">✦</span> Smart colour-coded schedule for 25S13
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; font-size:0.88rem; color:var(--text2);">
+          <span style="font-size:1rem;">✦</span> Live clock with countdown to next class
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; font-size:0.88rem; color:var(--text2);">
+          <span style="font-size:1rem;">✦</span> Today Mode — your daily go-to view
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; font-size:0.88rem; color:var(--text2);">
+          <span style="font-size:1rem;">✦</span> Personalised tips based on your subjects
+        </div>
+      </div>
+      <button class="btn-primary" onclick="launchApp()">Launch my timetable →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+  <nav class="navbar">
+    <div class="nav-logo">classtable.</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('today')">Today</button>
+      <button class="nav-tab" onclick="showPage('week')">Week</button>
+      <button class="nav-tab" onclick="showPage('profile')">Me</button>
+    </div>
+    <div class="nav-greeting">
+      <span id="nav-name-short" style="display:none;font-size:0.82rem;color:var(--text2);"></span>
+      <div class="nav-avatar" id="nav-avatar">?</div>
+    </div>
+  </nav>
+
+  <!-- TODAY PAGE -->
+  <div class="page active" id="page-today">
+    <div class="today-header">
+      <div class="today-date" id="today-date-label"></div>
+      <div class="today-title">Today's <span>Schedule</span></div>
+    </div>
+
+    <!-- Live clock -->
+    <div class="status-card" style="margin-bottom:1rem;">
+      <div class="time-display" id="live-clock">--:--</div>
+      <div style="color:var(--text2); font-size:0.85rem;" id="live-date-full"></div>
+    </div>
+
+    <!-- Current / Next lesson status -->
+    <div class="status-card" id="status-card">
+      <div class="status-label" id="status-label">Current Lesson</div>
+      <div class="status-main" id="status-subject">Loading…</div>
+      <div class="status-sub" id="status-location"></div>
+      <div class="status-time-badge" id="status-time-badge">
+        <div class="pulse-dot"></div>
+        <span id="status-countdown">—</span>
+      </div>
+      <div class="progress-wrap" id="progress-wrap" style="display:none">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Today's lessons list -->
+    <div id="today-hbl-badge" style="display:none;">
+      <div class="hbl-badge">📡 Home-Based Learning Day — all sessions online</div>
+    </div>
+    <div class="lessons-list" id="today-lessons"></div>
+  </div>
+
+  <!-- WEEK PAGE -->
+  <div class="page" id="page-week">
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; margin-bottom:0.3rem;">Weekly <span style="background:linear-gradient(135deg,#4f7cff,#7c5cfc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Timetable</span></div>
+      <div style="color:var(--text2);font-size:0.88rem;">Class 25S13 · Full week view</div>
+    </div>
+
+    <div class="week-controls">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input class="search-box" id="search-input" type="text" placeholder="Search subject or room…" oninput="filterWeek()">
+      </div>
+      <div class="filter-pills" id="filter-pills">
+        <button class="filter-pill active" data-filter="all" onclick="setFilter('all',this)">All</button>
+        <button class="filter-pill" data-filter="physics" onclick="setFilter('physics',this)">Physics</button>
+        <button class="filter-pill" data-filter="math" onclick="setFilter('math',this)">Math</button>
+        <button class="filter-pill" data-filter="computing" onclick="setFilter('computing',this)">Computing</button>
+        <button class="filter-pill" data-filter="gp" onclick="setFilter('gp',this)">GP</button>
+        <button class="filter-pill" data-filter="pe" onclick="setFilter('pe',this)">PE</button>
+      </div>
+    </div>
+
+    <div class="legend" id="subject-legend"></div>
+
+    <div class="days-tabs" id="days-tabs"></div>
+    <div class="week-schedule" id="week-lessons"></div>
+  </div>
+
+  <!-- PROFILE PAGE -->
+  <div class="page" id="page-profile">
+    <div style="font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; margin-bottom:1.5rem;">
+      My <span style="background:linear-gradient(135deg,#4f7cff,#7c5cfc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Profile</span>
+    </div>
+    <div class="persona-banner" id="profile-banner"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div style="font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:1rem; font-size:0.78rem;">Personalised Tips</div>
+    <div id="personal-tips" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const TIMETABLE = [
+  // MONDAY
+  { day: 'Monday', time: '08:05', endTime: '08:15', subject: 'Assembly', location: 'Main Hall' },
+  { day: 'Monday', time: '08:15', endTime: '09:15', subject: 'H2 Physics Tutorial', location: 'Computer Lab 3' },
+  { day: 'Monday', time: '09:15', endTime: '10:15', subject: 'JC2 PE', location: 'Sports Field' },
+  { day: 'Monday', time: '10:15', endTime: '11:15', subject: 'Break', location: '' },
+  { day: 'Monday', time: '11:15', endTime: '12:45', subject: 'H2 Computing Tutorial', location: 'Computer Lab 3' },
+  { day: 'Monday', time: '12:45', endTime: '14:15', subject: 'H1 General Paper Tutorial', location: 'Computer Lab 3' },
+  // TUESDAY
+  { day: 'Tuesday', time: '08:05', endTime: '08:15', subject: 'Assembly', location: 'Main Hall' },
+  { day: 'Tuesday', time: '08:15', endTime: '09:15', subject: 'H1 General Paper Lecture', location: 'Auditorium' },
+  { day: 'Tuesday', time: '09:15', endTime: '09:45', subject: 'Break', location: '' },
+  { day: 'Tuesday', time: '09:45', endTime: '11:15', subject: 'H2 Physics practical', location: 'Physics Lab 1/A2-02' },
+  { day: 'Tuesday', time: '11:15', endTime: '12:15', subject: 'H2 Math Tutorial', location: 'Computer Lab 3' },
+  { day: 'Tuesday', time: '12:15', endTime: '13:15', subject: 'Respective H1 subject', location: '' },
+  // WEDNESDAY
+  { day: 'Wednesday', time: '08:05', endTime: '08:15', subject: 'Assembly', location: 'Main Hall' },
+  { day: 'Wednesday', time: '08:15', endTime: '09:15', subject: 'SDT', location: 'Computer Lab 3' },
+  { day: 'Wednesday', time: '09:15', endTime: '10:15', subject: 'H2 Math Tutorial', location: 'Computer Lab 3' },
+  { day: 'Wednesday', time: '10:15', endTime: '10:45', subject: 'C3', location: 'K3-02' },
+  { day: 'Wednesday', time: '10:45', endTime: '11:45', subject: 'Break', location: '' },
+  { day: 'Wednesday', time: '11:45', endTime: '13:15', subject: 'H2 Computing Tutorial', location: 'Computer Lab 3' },
+  { day: 'Wednesday', time: '13:15', endTime: '14:15', subject: 'JC2 PE', location: 'Sports Field' },
+  { day: 'Wednesday', time: '14:15', endTime: '15:15', subject: 'Break', location: '' },
+  { day: 'Wednesday', time: '15:15', endTime: '16:15', subject: 'Whitespace Time', location: '' },
+  { day: 'Wednesday', time: '16:30', endTime: '18:15', subject: 'CCA', location: '' },
+  // THURSDAY
+  { day: 'Thursday', time: '09:00', endTime: '09:30', subject: 'Online Assembly', location: 'Online' },
+  { day: 'Thursday', time: '09:30', endTime: '10:30', subject: 'H1 General Paper (Asynchronous)', location: 'Online' },
+  { day: 'Thursday', time: '10:30', endTime: '11:30', subject: 'H2 Physics (Asynchronous)', location: 'Online' },
+  { day: 'Thursday', time: '11:30', endTime: '12:30', subject: 'H2 Math (Asynchronous)', location: 'Online' },
+  { day: 'Thursday', time: '13:00', endTime: '15:00', subject: 'H2 Computing (Synchronous)', location: 'Online' },
+  // FRIDAY
+  { day: 'Friday', time: '08:05', endTime: '08:15', subject: 'Assembly', location: 'Main Hall' },
+  { day: 'Friday', time: '08:15', endTime: '09:15', subject: 'H2 Math Tutorial', location: 'Computer Lab 3' },
+  { day: 'Friday', time: '09:15', endTime: '09:45', subject: 'Break', location: '' },
+  { day: 'Friday', time: '09:45', endTime: '11:15', subject: 'H1 General Paper Tutorial', location: 'Computer Lab 3' },
+  { day: 'Friday', time: '11:15', endTime: '12:15', subject: 'Respective H1 Subjects', location: '' },
+  { day: 'Friday', time: '12:15', endTime: '12:45', subject: 'Break', location: '' },
+  { day: 'Friday', time: '12:45', endTime: '14:15', subject: 'H2 Physics Tutorial', location: 'Computer Lab 3' },
+  { day: 'Friday', time: '14:15', endTime: '14:45', subject: 'Break', location: '' },
+  { day: 'Friday', time: '14:45', endTime: '16:15', subject: 'H2 Computing Tutorial', location: 'Computer Lab 3' },
+  { day: 'Friday', time: '16:30', endTime: '18:15', subject: 'CCA', location: '' },
+];
+
+const SUBJECT_COLORS = {
+  'H2 Physics Tutorial': { color: '#3b82f6', bg: 'rgba(59,130,246,0.13)', key: 'physics' },
+  'H2 Physics practical': { color: '#3b82f6', bg: 'rgba(59,130,246,0.13)', key: 'physics' },
+  'H2 Physics (Asynchronous)': { color: '#3b82f6', bg: 'rgba(59,130,246,0.13)', key: 'physics' },
+  'H2 Math Tutorial': { color: '#8b5cf6', bg: 'rgba(139,92,246,0.13)', key: 'math' },
+  'H2 Math (Asynchronous)': { color: '#8b5cf6', bg: 'rgba(139,92,246,0.13)', key: 'math' },
+  'H2 Computing Tutorial': { color: '#06b6d4', bg: 'rgba(6,182,212,0.13)', key: 'computing' },
+  'H2 Computing (Synchronous)': { color: '#06b6d4', bg: 'rgba(6,182,212,0.13)', key: 'computing' },
+  'H1 General Paper Tutorial': { color: '#f59e0b', bg: 'rgba(245,158,11,0.13)', key: 'gp' },
+  'H1 General Paper Lecture': { color: '#f59e0b', bg: 'rgba(245,158,11,0.13)', key: 'gp' },
+  'H1 General Paper (Asynchronous)': { color: '#f59e0b', bg: 'rgba(245,158,11,0.13)', key: 'gp' },
+  'Respective H1 subject': { color: '#fbbf24', bg: 'rgba(251,191,36,0.11)', key: 'gp' },
+  'Respective H1 Subjects': { color: '#fbbf24', bg: 'rgba(251,191,36,0.11)', key: 'gp' },
+  'JC2 PE': { color: '#10b981', bg: 'rgba(16,185,129,0.13)', key: 'pe' },
+  'Assembly': { color: '#ec4899', bg: 'rgba(236,72,153,0.12)', key: 'assembly' },
+  'Online Assembly': { color: '#ec4899', bg: 'rgba(236,72,153,0.12)', key: 'assembly' },
+  'Break': { color: '#6b7280', bg: 'rgba(107,114,128,0.08)', key: 'break' },
+  'CCA': { color: '#f97316', bg: 'rgba(249,115,22,0.13)', key: 'cca' },
+  'SDT': { color: '#14b8a6', bg: 'rgba(20,184,166,0.13)', key: 'sdt' },
+  'C3': { color: '#a78bfa', bg: 'rgba(167,139,250,0.13)', key: 'c3' },
+  'Whitespace Time': { color: '#64748b', bg: 'rgba(100,116,139,0.10)', key: 'whitespace' },
+};
+
+function getSubjectStyle(subject) {
+  for (const key in SUBJECT_COLORS) {
+    if (subject.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(subject.toLowerCase())) {
+      return SUBJECT_COLORS[key];
+    }
+  }
+  for (const key in SUBJECT_COLORS) {
+    if (subject.includes(key) || key.includes(subject)) return SUBJECT_COLORS[key];
+  }
+  return { color: '#64748b', bg: 'rgba(100,116,139,0.10)', key: 'other' };
+}
+
+function getSubjectStyleByName(subject) {
+  if (!subject) return { color: '#64748b', bg: 'rgba(100,116,139,0.10)', key: 'other' };
+  const s = subject.toLowerCase();
+  if (s.includes('physics')) return SUBJECT_COLORS['H2 Physics Tutorial'];
+  if (s.includes('math')) return SUBJECT_COLORS['H2 Math Tutorial'];
+  if (s.includes('computing')) return SUBJECT_COLORS['H2 Computing Tutorial'];
+  if (s.includes('general paper') || s.includes('gp')) return SUBJECT_COLORS['H1 General Paper Tutorial'];
+  if (s.includes('h1 subject') || s.includes('respective')) return SUBJECT_COLORS['Respective H1 subject'];
+  if (s.includes('pe') || s.includes('physical')) return SUBJECT_COLORS['JC2 PE'];
+  if (s.includes('assembly')) return SUBJECT_COLORS['Assembly'];
+  if (s.includes('break')) return SUBJECT_COLORS['Break'];
+  if (s.includes('cca')) return SUBJECT_COLORS['CCA'];
+  if (s.includes('sdt')) return SUBJECT_COLORS['SDT'];
+  if (s.includes('c3')) return SUBJECT_COLORS['C3'];
+  if (s.includes('whitespace')) return SUBJECT_COLORS['Whitespace Time'];
+  return { color: '#64748b', bg: 'rgba(100,116,139,0.10)', key: 'other' };
+}
+
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const DAYS_SHORT = { Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu', Friday: 'Fri' };
+
+let userData = { name: '', fav: '', weak: '', initials: '?' };
+let currentDayFilter = 'Monday';
+let currentSubjectFilter = 'all';
+let currentSearchQuery = '';
+
+// ---- LOGIN FLOW ----
+function mockGoogleSignIn() {
+  document.getElementById('demo-email').value = 'student@google.school.edu.sg';
+  nextStep(2);
+}
+
+function nextStep(step) {
+  if (step === 2) {
+    const email = document.getElementById('demo-email').value;
+    if (!email) { alert('Please enter your email.'); return; }
+  }
+  if (step === 3) {
+    const name = document.getElementById('input-name').value.trim();
+    const fav = document.getElementById('input-fav').value;
+    const weak = document.getElementById('input-weak').value;
+    if (!name) { alert('Please enter your name.'); return; }
+    userData.name = name;
+    userData.fav = fav;
+    userData.weak = weak;
+    const parts = name.trim().split(' ');
+    userData.initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
+    const preview = document.getElementById('welcome-preview');
+    preview.innerHTML = `Hey <strong>${name}</strong>! 👋 Your fav subject is <strong>${fav || 'TBD'}</strong> and you want to work on <strong>${weak || 'TBD'}</strong>. We'll keep that in mind!`;
+  }
+  document.getElementById(`step-${step-1}`).style.display = 'none';
+  document.getElementById(`step-${step}`).style.display = 'block';
+}
+
+function launchApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('nav-avatar').textContent = userData.initials;
+  const shortName = userData.name.split(' ')[0];
+  document.getElementById('nav-name-short').textContent = shortName;
+  document.getElementById('nav-name-short').style.display = 'block';
+  initApp();
+}
+
+// ---- TIME UTILS ----
+function timeToMins(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minsToTime(m) {
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+}
+
+function getDayName(d) {
+  return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d];
+}
+
+function getTodayDayName() {
+  const d = new Date().getDay();
+  return getDayName(d);
+}
+
+function getNowMins() {
+  const n = new Date();
+  return n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60;
+}
+
+function formatCountdown(mins) {
+  if (mins <= 0) return 'Now';
+  const h = Math.floor(mins / 60);
+  const m = Math.floor(mins % 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+// ---- TODAY PAGE ----
+function renderTodayPage() {
+  const today = getTodayDayName();
+  const dateEl = document.getElementById('today-date-label');
+  const now = new Date();
+  dateEl.textContent = now.toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const isWeekend = today === 'Saturday' || today === 'Sunday';
+  const todayLessons = TIMETABLE.filter(l => l.day === today);
+  const isHBL = today === 'Thursday';
+
+  document.getElementById('today-hbl-badge').style.display = isHBL ? 'block' : 'none';
+
+  const listEl = document.getElementById('today-lessons');
+  listEl.innerHTML = '';
+
+  if (isWeekend || todayLessons.length === 0) {
+    listEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎉</div><div>No classes today — enjoy your day off!</div></div>`;
+    document.getElementById('status-subject').textContent = 'No classes today';
+    document.getElementById('status-location').textContent = 'Enjoy your weekend!';
+    document.getElementById('status-label').textContent = 'Status';
+    document.getElementById('status-countdown').textContent = '—';
+    return;
+  }
+
+  const nowMins = getNowMins();
+  let currentIdx = -1, nextIdx = -1;
+
+  todayLessons.forEach((l, i) => {
+    const start = timeToMins(l.time);
+    const end = timeToMins(l.endTime);
+    if (nowMins >= start && nowMins < end) currentIdx = i;
+    if (nowMins < start && nextIdx === -1) nextIdx = i;
+  });
+
+  // Status card
+  if (currentIdx !== -1) {
+    const cl = todayLessons[currentIdx];
+    const style = getSubjectStyleByName(cl.subject);
+    const end = timeToMins(cl.endTime);
+    const start = timeToMins(cl.time);
+    const remain = end - nowMins;
+    const elapsed = nowMins - start;
+    const total = end - start;
+    const pct = Math.max(0, Math.min(100, (elapsed / total) * 100));
+    document.getElementById('status-label').textContent = cl.subject === 'Break' ? 'On Break' : 'In class now';
+    document.getElementById('status-subject').textContent = cl.subject;
+    document.getElementById('status-subject').style.color = style.color;
+    document.getElementById('status-location').textContent = cl.location || '';
+    document.getElementById('status-countdown').textContent = `Ends in ${formatCountdown(remain)}`;
+    document.getElementById('progress-wrap').style.display = 'block';
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-bar').style.background = `linear-gradient(90deg, ${style.color}, ${style.color}aa)`;
+  } else if (nextIdx !== -1) {
+    const nl = todayLessons[nextIdx];
+    const style = getSubjectStyleByName(nl.subject);
+    const start = timeToMins(nl.time);
+    const wait = start - nowMins;
+    document.getElementById('status-label').textContent = 'Next up';
+    document.getElementById('status-subject').textContent = nl.subject;
+    document.getElementById('status-subject').style.color = style.color;
+    document.getElementById('status-location').textContent = nl.location ? `📍 ${nl.location}` : '';
+    document.getElementById('status-countdown').textContent = `Starts in ${formatCountdown(wait)} (${nl.time})`;
+    document.getElementById('progress-wrap').style.display = 'none';
+  } else {
+    document.getElementById('status-label').textContent = 'Classes done';
+    document.getElementById('status-subject').textContent = 'All done for today! 🎉';
+    document.getElementById('status-subject').style.color = '#10b981';
+    document.getElementById('status-location').textContent = '';
+    document.getElementById('status-countdown').textContent = 'See you tomorrow';
+    document.getElementById('progress-wrap').style.display = 'none';
+  }
+
+  // Lesson list
+  todayLessons.forEach((l, i) => {
+    const style = getSubjectStyleByName(l.subject);
+    const start = timeToMins(l.time);
+    const end = timeToMins(l.endTime);
+    const isCurrent = i === currentIdx;
+    const isNext = i === nextIdx;
+    const isPast = nowMins > end;
+    const isBreak = l.subject.toLowerCase() === 'break';
+
+    const card = document.createElement('div');
+    card.className = `lesson-card${isCurrent ? ' current' : ''}${isPast ? ' past' : ''}${isBreak ? ' break-card' : ''}`;
+    card.style.background = isCurrent ? style.bg : 'var(--surface)';
+
+    let badge = '';
+    if (isCurrent) badge = `<span class="lesson-badge badge-now">Now</span>`;
+    else if (isNext) badge = `<span class="lesson-badge badge-next">Next</span>`;
+    else if (isPast) badge = `<span class="lesson-badge badge-done">Done</span>`;
+
+    const durationMins = end - start;
+    const durationStr = durationMins >= 60 ? `${durationMins/60}h` : `${durationMins}m`;
+
+    card.innerHTML = `
+      <div class="lesson-color-bar" style="background:${style.color}; opacity:${isBreak ? 0.4 : 1};"></div>
+      <div class="lesson-time-col">
+        <div class="lesson-time-start">${l.time}</div>
+        <div class="lesson-time-end">${l.endTime}</div>
+        <div style="font-size:0.68rem;color:var(--text3);margin-top:2px;">${durationStr}</div>
+      </div>
+      <div class="lesson-info">
+        <div class="lesson-subject" style="color:${isBreak ? 'var(--text2)' : style.color}">${l.subject}</div>
+        <div class="lesson-location">${l.location ? `<span style="font-size:11px;">📍</span> ${l.location}` : '<span style="color:var(--text3);">—</span>'}</div>
+      </div>
+      ${badge}
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+// ---- WEEK PAGE ----
+function renderWeekPage() {
+  // Build day tabs
+  const tabsEl = document.getElementById('days-tabs');
+  tabsEl.innerHTML = '';
+  const today = getTodayDayName();
+
+  DAYS.forEach(day => {
+    const btn = document.createElement('button');
+    btn.className = `day-tab${day === currentDayFilter ? ' active' : ''}${day === today ? ' today-tab' : ''}`;
+    btn.textContent = DAYS_SHORT[day] + (day === today ? ' ·' : '');
+    btn.onclick = () => {
+      currentDayFilter = day;
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderWeekLessons();
+    };
+    tabsEl.appendChild(btn);
+  });
+
+  // Build legend
+  const legendEl = document.getElementById('subject-legend');
+  legendEl.innerHTML = '';
+  const shown = new Set();
+  Object.entries(SUBJECT_COLORS).forEach(([name, style]) => {
+    if (shown.has(style.key)) return;
+    if (['break','other'].includes(style.key)) return;
+    shown.add(style.key);
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<div class="legend-dot" style="background:${style.color}"></div><span>${name.replace('Tutorial','').replace('(Asynchronous)','').replace('(Synchronous)','').trim()}</span>`;
+    legendEl.appendChild(item);
+  });
+
+  renderWeekLessons();
+}
+
+function renderWeekLessons() {
+  const listEl = document.getElementById('week-lessons');
+  listEl.innerHTML = '';
+  const today = getTodayDayName();
+  const nowMins = getNowMins();
+  const isHBL = currentDayFilter === 'Thursday';
+
+  if (isHBL) {
+    listEl.innerHTML += `<div class="hbl-badge" style="margin-bottom:1rem;">📡 Home-Based Learning Day</div>`;
+  }
+
+  let lessons = TIMETABLE.filter(l => l.day === currentDayFilter);
+
+  if (currentSubjectFilter !== 'all') {
+    const filterMap = { physics: 'physics', math: 'math', computing: 'computing', gp: 'general paper', pe: 'pe' };
+    lessons = lessons.filter(l => l.subject.toLowerCase().includes(filterMap[currentSubjectFilter] || currentSubjectFilter));
+  }
+
+  if (currentSearchQuery) {
+    const q = currentSearchQuery.toLowerCase();
+    lessons = lessons.filter(l => l.subject.toLowerCase().includes(q) || l.location.toLowerCase().includes(q));
+  }
+
+  if (lessons.length === 0) {
+    listEl.innerHTML += `<div class="empty-state"><div>No matching lessons found.</div></div>`;
+    return;
+  }
+
+  lessons.forEach(l => {
+    const style = getSubjectStyleByName(l.subject);
+    const start = timeToMins(l.time);
+    const end = timeToMins(l.endTime);
+    const isCurrent = currentDayFilter === today && nowMins >= start && nowMins < end;
+    const isPast = currentDayFilter === today && nowMins > end;
+    const isBreak = l.subject.toLowerCase() === 'break';
+    const durationMins = end - start;
+    const durationStr = durationMins >= 60 ? `${durationMins / 60 % 1 === 0 ? durationMins/60 : (durationMins/60).toFixed(1)}h` : `${durationMins}m`;
+
+    const card = document.createElement('div');
+    card.className = `lesson-card${isCurrent ? ' current' : ''}${isPast ? ' past' : ''}${isBreak ? ' break-card' : ''}`;
+    card.style.background = isCurrent ? style.bg : 'var(--surface)';
+
+    card.innerHTML = `
+      <div class="lesson-color-bar" style="background:${style.color}; opacity:${isBreak ? 0.35 : 1};"></div>
+      <div class="lesson-time-col">
+        <div class="lesson-time-start">${l.time}</div>
+        <div class="lesson-time-end">${l.endTime}</div>
+        <div style="font-size:0.68rem;color:var(--text3);margin-top:2px;">${durationStr}</div>
+      </div>
+      <div class="lesson-info">
+        <div class="lesson-subject" style="color:${isBreak ? 'var(--text3)' : style.color}">${l.subject}</div>
+        <div class="lesson-location">${l.location ? `<span style="font-size:11px;">📍</span> ${l.location}` : '<span style="color:var(--text3);">No location</span>'}</div>
+      </div>
+      ${isCurrent ? '<span class="lesson-badge badge-now">Live</span>' : ''}
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+function setFilter(filter, btn) {
+  currentSubjectFilter = filter;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderWeekLessons();
+}
+
+function filterWeek() {
+  currentSearchQuery = document.getElementById('search-input').value;
+  renderWeekLessons();
+}
+
+// ---- PROFILE PAGE ----
+function renderProfilePage() {
+  const banner = document.getElementById('profile-banner');
+  banner.innerHTML = `
+    <div class="persona-avatar-lg">${userData.initials}</div>
+    <div>
+      <div class="persona-name">${userData.name || 'Student'}</div>
+      <div style="color:var(--text2);font-size:0.85rem;">Class 25S13 · JC2</div>
+      <div class="persona-tags">
+        <span class="persona-tag">25S13</span>
+        ${userData.fav ? `<span class="persona-tag fav">💚 ${userData.fav}</span>` : ''}
+        ${userData.weak ? `<span class="persona-tag weak">⚡ ${userData.weak}</span>` : ''}
+      </div>
+    </div>
+  `;
+
+  // Stats
+  const statsEl = document.getElementById('stats-grid');
+  const subjectCounts = {};
+  TIMETABLE.forEach(l => {
+    if (l.subject === 'Break' || l.subject === 'Whitespace Time') return;
+    const s = getSubjectStyleByName(l.subject);
+    subjectCounts[s.key] = (subjectCounts[s.key] || 0) + 1;
+  });
+  const totalLessons = TIMETABLE.filter(l => l.subject !== 'Break' && l.subject !== 'Whitespace Time').length;
+  const weekHours = TIMETABLE.reduce((acc, l) => {
+    if (l.subject === 'Break') return acc;
+    return acc + (timeToMins(l.endTime) - timeToMins(l.time)) / 60;
+  }, 0);
+
+  statsEl.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-num" style="color:#4f7cff">${totalLessons}</div>
+      <div class="stat-label">Sessions/week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#8b5cf6">${weekHours.toFixed(0)}h</div>
+      <div class="stat-label">School hours/week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#10b981">5</div>
+      <div class="stat-label">Days per week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#f59e0b">1</div>
+      <div class="stat-label">HBL day/week</div>
+    </div>
+  `;
+
+  // Tips
+  const tips = [
+    { icon: '📡', text: 'Thursday is Home-Based Learning. Make sure you\'re logged into Google Classroom by 9 AM.' },
+    { icon: '🏃', text: 'PE on Monday and Wednesday — bring your PE kit those days.' },
+    { icon: '💻', text: 'Most tutorials are in Computer Lab 3. Keep your login credentials handy.' },
+  ];
+  if (userData.weak) {
+    tips.push({ icon: '⚡', text: `You flagged ${userData.weak} as your weakest subject. It appears multiple times this week — consider reviewing notes the night before.` });
+  }
+  if (userData.fav) {
+    tips.push({ icon: '💚', text: `${userData.fav} is your favourite — you've got a great attitude towards it. Keep the momentum going!` });
+  }
+
+  const tipsEl = document.getElementById('personal-tips');
+  tipsEl.innerHTML = tips.map(t => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.25rem;display:flex;gap:12px;align-items:flex-start;">
+      <span style="font-size:1.1rem;flex-shrink:0;margin-top:2px;">${t.icon}</span>
+      <span style="color:var(--text2);font-size:0.88rem;line-height:1.6;">${t.text}</span>
+    </div>
+  `).join('');
+}
+
+// ---- CLOCK ----
+function updateClock() {
+  const now = new Date();
+  document.getElementById('live-clock').textContent = now.toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  document.getElementById('live-date-full').textContent = now.toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// ---- NAVIGATION ----
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  if (name === 'today') tabs[0].classList.add('active');
+  else if (name === 'week') tabs[1].classList.add('active');
+  else if (name === 'profile') tabs[2].classList.add('active');
+
+  if (name === 'today') renderTodayPage();
+  else if (name === 'week') renderWeekPage();
+  else if (name === 'profile') renderProfilePage();
+}
+
+function initApp() {
+  const today = getTodayDayName();
+  currentDayFilter = DAYS.includes(today) ? today : 'Monday';
+  renderTodayPage();
+  updateClock();
+  setInterval(updateClock, 1000);
+  setInterval(() => {
+    const active = document.querySelector('.page.active');
+    if (active && active.id === 'page-today') renderTodayPage();
+    if (active && active.id === 'page-week') renderWeekLessons();
+  }, 30000);
+}
+</script>
+</body>
+</html>
